@@ -1,7 +1,11 @@
 #include "stdafx.h"
 #include"Server_socket.h"
 
-Server_socket::Server_socket(const int port){	//Winsock inicializálás
+Server_socket::Server_socket(){};
+
+Server_socket::~Server_socket(){ shutdown(Socket, SD_SEND); closesocket(Socket); WSACleanup(); };
+
+Server_socket& Server_socket::init(const int port){//Winsock inicializálás
 	nClient = 0;
 	//ServerSocket = NULL;
 	if (WSAStartup(MAKEWORD(2, 2), &WsaDat) != 0)
@@ -20,11 +24,9 @@ Server_socket::Server_socket(const int port){	//Winsock inicializálás
 	serverInf.sin_family = AF_INET;
 	serverInf.sin_addr.s_addr = INADDR_ANY;
 	serverInf.sin_port = htons(port);
-	
+	return *this;
 };
-Server_socket::~Server_socket(){ shutdown(Socket, SD_SEND); closesocket(Socket); WSACleanup(); };
-
-bool Server_socket::s_bind(){
+Server_socket& Server_socket::s_bind(){
 	/*if (bind(ServerSocket, (LPSOCKADDR)&serverInf, sizeof(serverInf)) == SOCKET_ERROR)
 	{
 		WSACleanup();
@@ -35,39 +37,39 @@ bool Server_socket::s_bind(){
 		WSACleanup();
 		throw "Unable to bind socket!\r\n";
 	}
-	return true;
+	return *this;
 };
 
 void Server_socket::s_listen(){ listen(Socket, 1); };
 
-void Server_socket::s_accept(){
-	/*
-	if (nClient<nMaxClients)
-	{
-		int size = sizeof(sockaddr);
-		Socket[nClient] = accept(wParam, &sockAddrClient, &size);
-		if (Socket[nClient] == INVALID_SOCKET)
-		{
-			int nret = WSAGetLastError();
-			WSACleanup();
-		}
-		std::cout << "Client connected!\r\n\r\n";
-	}
-	nClient++; */
- 
-	SOCKET TempSock = SOCKET_ERROR;
+void Server_socket::s_accept(SOCKET &TempSock){
+	
+	TempSock = SOCKET_ERROR;
 	while (TempSock == SOCKET_ERROR)
 	{
-		std::cout << "Waiting for incoming connections...\r\n";
 		TempSock = accept(Socket, NULL, NULL);
 	}
-	Socket = TempSock;
-	
-	std::cout << "Client connected!\r\n\r\n";
 };
-void Server_socket::s_send(const char* message){ send(Socket, message, strlen(message), 0); }
-//void Server_socket::s_receive(char* message){ recv(Socket, message,strlen(message), 0); }
-char* Server_socket::s_receive(char* message, const int size){ recv(Socket, message, size, 0); return message; }
+void Server_socket::s_send(const char* message){
+	int iResult = send(Socket, message, strlen(message), 0);
+	if (iResult == SOCKET_ERROR) {
+		wprintf(L"send failed with error: %d\n", WSAGetLastError());
+		closesocket(Socket);
+		WSACleanup();
+		throw "send error";
+	}
+};
+
+char* Server_socket::s_receive(char* message, const int size){
+	int lasterror=recv(Socket, message, size, 0); 
+	if (lasterror==SOCKET_ERROR) {
+		lasterror = WSAGetLastError();
+		std::cerr << "recv error: " << lasterror;
+		closesocket(Socket);
+		WSACleanup();
+		throw "recv error: ";
+	}
+};
 
 
 

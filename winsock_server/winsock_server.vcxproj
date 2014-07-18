@@ -81,7 +81,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="general_traits.h" />
-    <ClInclude Include="MessageStore.h" />
     <ClInclude Include="Request_protocol.h" />
     <ClInclude Include="Server_socket.h" />
     <ClInclude Include="SMTP_prot.h" />
@@ -91,6 +90,7 @@
   <ItemGroup>
     <ClCompile Include="Request_protocol.cpp" />
     <ClCompile Include="Server_socket.cpp" />
+    <ClCompile Include="SMTP_prot.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

@@ -33,9 +33,6 @@
     <ClInclude Include="SMTP_prot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MessageStore.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Request_protocol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -51,7 +48,10 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Request_protocol.cpp">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SMTP_prot.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

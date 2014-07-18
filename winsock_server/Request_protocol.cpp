@@ -1,68 +1,76 @@
 #include "stdafx.h"
 #include"Request_protocol.h"
 
-Mail_request::Mail_request(const int port):Server_socket(port){
-		s_bind();
-		s_listen();
-		s_accept();
-};
+Mail_request::Mail_request(SOCKET &s) :socket(s){};
+
 void Mail_request::recv_mailFrom(){
 	char buffer[BUFFER_LEN];
 	memset(buffer, 0, BUFFER_LEN);
-	s_receive(buffer, BUFFER_LEN);
-	mail.mailfrom=getdata(buffer);
+	m_recv(buffer, BUFFER_LEN);
+	mail.mailfrom = getdata(buffer);
 };
 void Mail_request::recv_mailTo(){
 	char buffer[BUFFER_LEN];
 	memset(buffer, 0, BUFFER_LEN);
-	s_receive(buffer, BUFFER_LEN);
-	mail.mailto=getdata(buffer);
+	m_recv(buffer, BUFFER_LEN);
+	mail.mailto = getdata(buffer);
 };
 void Mail_request::recv_data(){
-	char buffer[BUFFER_LEN];
-	memset(buffer, 0, BUFFER_LEN);
-	s_receive(buffer, BUFFER_LEN);
-	if (string(buffer, strlen(DT)).compare(DT) == 0)
+	char buffer[1000];
+	memset(buffer, 0, 1000);
+	m_recv(buffer, 1000);
+	if (string(buffer, strlen("DATA")).compare("DATA") == 0)
 	{
-		string s(buffer, strnlen(buffer, BUFFER_LEN));
+		int real_len = strnlen(buffer, BUFFER_LEN);
+		string s(buffer, real_len);
 		int pos1 = s.find_first_of(SP) + 1;
-		int pos2 = s.find_first_of(CRLF);
-		mail.data = s.substr(pos1,pos2-pos1);
+		mail.data = s.substr(pos1, real_len - pos1);
 	}
 	else{
 		throw "Data read error";
-		}
+	}
 };
 
 void Mail_request::send_connectRe(){
-	s_send(connectOK);
+	m_send(connectOK);
 };
 void Mail_request::send_mailFromRe(){
-	s_send(mailfromOK);
+	m_send(mailfromOK);
 };
 void Mail_request::send_mailToRe(){
-	s_send(mailtoOK);
+	m_send(mailtoOK);
 };
 void Mail_request::send_dataRe(){
-	s_send(dataOK);
+	m_send(dataOK);
 };
 MailRequest Mail_request::getMail(){
 	return mail;
 };
-bool Mail_request::responcheck(const std::string c){
-	char inbuff[100];
-	memset(inbuff, 0, 100);
-	recv(Socket, inbuff, 100, 0);
-	std::string s(inbuff, strnlen(inbuff, 100));
-	//if (compare(inbuff,c))
-	if (c.compare(s) == 0)
-		return true;
-	return false;
+void Mail_request::m_send(const char* message){
+	int iResult = send(socket, message, strlen(message), 0);
+	if (iResult == SOCKET_ERROR) {
+		wprintf(L"send failed with error: %d\n", WSAGetLastError());
+		closesocket(socket);
+		WSACleanup();
+		throw "send error";
+	}
 };
+void Mail_request::m_recv(char *message,const int size){
+	int lasterror = recv(socket, message, size, 0); 
+	if (lasterror == SOCKET_ERROR) {
+		lasterror = WSAGetLastError();
+		std::cerr << "recv error: " << lasterror;
+		closesocket(socket);
+		WSACleanup();
+		throw "recv error: ";
+	}
+}
 std::string Mail_request::getdata(const string &s){
-	int firstpos = s.find_first_of(SP)+1;
-	int pos1=s.find_first_of(SP,firstpos)+1;
+	int firstpos = s.find_first_of(SP) + 1;
+	int pos1 = s.find_first_of(SP, firstpos) + 1;
 	int pos2 = s.find_first_of(CRLF);
-	string temp=s.substr(pos1,pos2-pos1);
+	string temp = s.substr(pos1, pos2 - pos1);
 	return temp;
 };
+
+void Store::add(const MailRequest& mail){ store.push_back(mail); };

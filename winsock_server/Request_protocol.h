@@ -1,14 +1,12 @@
 //E-mail küldési kérés protokollja TCP fölött
-#include"Server_socket.h"
+#include"general_traits.h"
 
- 
-class Mail_request:  public Server_socket{
-	WSADATA WsaDat;
-	SOCKET Socket;
-	SOCKADDR_IN SockAddr;
+
+class Mail_request{
+	SOCKET &socket;
 	MailRequest mail;
 public:
-	Mail_request(const int port);
+	Mail_request(SOCKET &s);
 	//fogadás
 	void recv_mailFrom();
 	void recv_mailTo();
@@ -18,9 +16,20 @@ public:
 	void send_mailFromRe();
 	void send_mailToRe();
 	void send_dataRe();
+	void m_send(const char* message);
+	void m_recv(char *message, const int size);
 	//adat
 	MailRequest getMail();
 private:
-	bool responcheck(const std::string c);
-	std::string getdata(const string &s);
+	
+	string getdata(const std::string &s);
+};
+
+class Store{
+	std::vector<MailRequest> store;
+public:
+	void add(const MailRequest& mail);
+	bool save(); //komplett kérés elmentése
+	bool read();
+	bool markProcessed(const MailRequest &req);
 };

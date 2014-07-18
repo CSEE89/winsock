@@ -1,24 +1,33 @@
-(foo@mail.com
+1
+0
+foo@mail.com
 csabi@mail.com
-csabika elso e-mailjegreetings from csabi
-)(foo@mail.com
-csabi@mail.com
-csabika elso e-mailjegreetings from csabi
-)foo@mail.com
-csabi@mail.com
-csabika elso e-mailjegreetings from csabi
-0foo@mail.com
-csabi@mail.com
-csabika elso e-mailjegreetings from csabi
+Hello
+Ez itt a teszt uzenet.
+udv,
+Kliens
+
+
+DATAEND
+2
 1
 foo@mail.com
 csabi@mail.com
-csabika elso e-mailjegreetings from csabi
-0
-fsddf
-msaf
-jee csabi vok
+Hello
+Ez itt a teszt uzenet.
+udv,
+Kliens
+
+
+DATAEND
+3
 0
 foo@mail.com
 csabi@mail.com
-csabika elso e-mailjegreetings from csabi
+Hello
+Ez itt a teszt uzenet.
+udv,
+Kliens
+
+
+DATAEND
