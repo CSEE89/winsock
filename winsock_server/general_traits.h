@@ -19,6 +19,7 @@
 #define mailtoOK "mailto ok \r\n"
 #define mailfromOK "mailfrom ok \r\n" 
 #define dataOK "data end \r\n"
+#define H "HELO"
 #define MF "MAIL FROM: "
 #define RCPT "RCPT TO: "
 #define MT "MAIL TO"
@@ -26,18 +27,36 @@
 #define SP " "
 #define CRLF "\r\n"
 #define DATAEND "DATAEND"
+#define HOSTNAME "SMTP host"
 
 
 typedef std::string string;
 
-struct MailRequest{
+// e-mail üzenet tárolása történik ezzel az osztállyal
+class MailRequest{
+public:
+	MailRequest(){
+		id = 0;
+		processed = 0;		
+	}
+	MailRequest(const MailRequest &m){ 
+		this->id = m.id; 
+		this->processed = m.processed; 
+		this->mailto = m.mailto; 
+		this->mailfrom = m.mailfrom; 
+		this->data = m.data; 
+	}
 	int id;
 	bool processed = false;
 	string mailto;
 	string mailfrom;
 	string data;
+	void clear(){
+		id = 0; processed = 0; mailto.clear();
+		mailfrom.clear(); data.clear();
+	}
 };
-
+// kiró oprátor
 inline std::ostream &operator<<(std::ostream &a, const MailRequest &mail)
 {
 	a << mail.id << std::endl;
@@ -62,6 +81,7 @@ public:
 		}
 	}
 	virtual void s_recv(char* message, const int size){
+		memset(message, 0, size);
 		int lasterror = recv(Socket, message, size, 0);
 		if (lasterror == SOCKET_ERROR) {
 			lasterror = WSAGetLastError();

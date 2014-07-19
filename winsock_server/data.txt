@@ -1,29 +1,42 @@
-1
 0
+1
 foo@mail.com
 csabi@mail.com
-Hello
-Ez itt a teszt uzenet.
-udv,
-Kliens
-
-
+elso uzi
+DATAEND
+1
+1
+foo@mail.com
+csabi@mail.com
+masodik uzi
+hy
+cs
 DATAEND
 2
 1
 foo@mail.com
 csabi@mail.com
+harmadik uzo
+DATAEND
+3
+1
+csabi@mail.com
+foo@mail.com
+helo itt kliens
+DATAEND
+4
+1
+csabi@mail.com
+foo@mail.com
 Hello
 Ez itt a teszt uzenet.
 udv,
 Kliens
-
-
 DATAEND
-3
-0
-foo@mail.com
+5
+1
 csabi@mail.com
+foo@mail.com
 Hello
 Ez itt a teszt uzenet.
 udv,

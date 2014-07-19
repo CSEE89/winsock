@@ -27,11 +27,6 @@ Server_socket& Server_socket::init(const int port){//Winsock inicializálás
 	return *this;
 };
 Server_socket& Server_socket::s_bind(){
-	/*if (bind(ServerSocket, (LPSOCKADDR)&serverInf, sizeof(serverInf)) == SOCKET_ERROR)
-	{
-		WSACleanup();
-		throw "Unable to bind socket!\r\n";
-	}*/
 	if (bind(Socket, (SOCKADDR*)(&serverInf), sizeof(serverInf)) == SOCKET_ERROR)
 	{		
 		WSACleanup();

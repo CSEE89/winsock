@@ -6,7 +6,7 @@ class Mail_request{
 	SOCKET &socket;
 	MailRequest mail;
 public:
-	Mail_request(SOCKET &s);
+	Mail_request(SOCKET &s); //Server_socket.h által létrehozott socket átvétele a main függvényben
 	//fogadás
 	void recv_mailFrom();
 	void recv_mailTo();

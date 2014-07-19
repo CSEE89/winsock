@@ -5,15 +5,14 @@
 #include"Server_socket.h"
 #include"SMTP_prot.h"
 
-
+static int mailID = 0; //e-mail-ek egyedi azonoítója
 std::mutex mtx; //thread sync
-static int mailID=0;
-Store messages;
 
+// Kliens csatlakozásakor indított szál
 void clientThread(SOCKET &socket){
 	try{
 		// e-mail kérés fogadása
-		Mail_request server(socket);
+		Mail_request server(socket); // e-mail kérés fogadás , saját protokollal
 		MailRequest mail; //adatárolás
 		server.send_connectRe();
 		server.recv_mailFrom();
@@ -21,14 +20,13 @@ void clientThread(SOCKET &socket){
 		server.recv_mailTo();
 		server.send_mailToRe();
 		server.recv_data();
-		mail = server.getMail();
-		// E-mail kérés elmentése
-		mtx.lock();
+		mail = server.getMail(); //fogadott kérés 
 		mailID++;
-		mail.id = mailID;
+		mail.id = mailID;  //egyedi azonosító minden e-mail-hez
+		mtx.lock();
 		std::ofstream datafile;
+		//fogadott kérés elemnetése
 		datafile.open("data.txt", std::ofstream::app);
-		messages.add(mail);
 		if (datafile.is_open())
 		{
 			datafile << mail;
@@ -38,11 +36,9 @@ void clientThread(SOCKET &socket){
 
 		//SMTP kommunikáció, e-mail továbbküldés
 		SMTP_prot smtp(mail);
-		smtp.connectTo("localhost", 25);
-		smtp.HELO();
-		smtp.s_receive();
+		smtp.connectTo("localhost", 25);  //25-ös porton küldi az SMTP servernek
+		smtp.HELO(); //HELO uzenet küldés, hibás válasz esetén kiírja a hibaüzenetet
 		smtp.MAILFROM();
-		smtp.s_receive();
 		smtp.RCPT_TO();
 		smtp.DATA();
 		smtp.Subject();
@@ -51,9 +47,8 @@ void clientThread(SOCKET &socket){
 		smtp.QUIT();
 
 		//elmentett kérés feldolgozottnak jelölése
-
-
-	
+		DataBase file("data.txt");
+		file.setprocessed(mail.id);
 	}
 	catch (const char* error)
 	{
@@ -62,70 +57,32 @@ void clientThread(SOCKET &socket){
 	
 
 }
-void fileRead(const char* fn)
-{
-	char buff[100];
-	std::ifstream myReadFile;
-	myReadFile.open(fn);
-	int cnt(0);
-	MailRequest mail;
-	if (myReadFile.is_open()) {
-		while (!myReadFile.eof()) {					
-			myReadFile.getline(buff, 100);
-			switch (cnt)
-			{
-			case 0:
-				mail.id = (int)buff[0]-48;
-				break;
-			case 1:
-				mail.processed=buff[0]-48;
-				break;
-			case 2:
-				mail.mailfrom.append(buff);
-				break;
-			case 3:
-				mail.mailto.append(buff);
-				break;
-			case 4:
-				while (string(buff).compare(DATAEND) != 0)
-				{
-					myReadFile.getline(buff, 100);
-					if (string(buff).compare(DATAEND) != 0)
-					mail.data.append(buff);
-				}
-				cnt = -1;
-				mail.data.clear();
-				std::cout << mail;
-				break;
-			}
-			cnt++;
-		}
-	}
-	myReadFile.close();
+// program indításkor a tovább nem küldött üzenetek elküldése
+void sendunprocessed(const char* fn){
+	DataBase file("data.txt");
+	file.fileRead();
+	file.sendtoSMTP(mailID);
+	file.writeChanges();
 }
-
 
 int main()
 {	
 	
-	//korábbi fel nem dolgozott üzenetek küldése
-	fileRead("data.txt");
+	int nClient(0); //kilensek száma
+	std::vector<SOCKET> clients; //kliens Socketek
+	std::vector<std::thread*> threads; //minden kliens csatlakozásakor új szál
 
-
-	//Socket létrehozás
-	int nClient(0);
-	std::vector<SOCKET> clients;
-	std::vector<std::thread*> threads;
-	Server_socket ServerSocket;
+	sendunprocessed("data.txt"); //korábbi fel nem dolgozott üzenetek küldése
+	Server_socket ServerSocket; // Szerver socket
 	try{
-		ServerSocket.init(8888).s_bind().s_listen();
+		ServerSocket.init(8888).s_bind().s_listen(); //socket inicializálás, bind, listen
 	}
 	catch (const char* error){
 		std::cerr << error;
 	}
 	SOCKET TempSock = SOCKET_ERROR;
 	std::thread* t;
-	while (true)
+	while (true) //itt várjuk a kilenseket
 	{
 		std::cout << "wating for connection" << std::endl;
 		ServerSocket.s_accept(TempSock);
@@ -137,19 +94,18 @@ int main()
 			std::cerr << "accept hiba"<<nret;
 		}
 		
-		t=new std::thread(clientThread,clients.back());
+		t=new std::thread(clientThread,clients.back());  // új szál a kilensnek
 		std::cout << "Client connected";
 		threads.push_back(t);
 		nClient++;
 		for (auto& th : threads)
 		{
-			if (th->joinable())
+			if (th->joinable())  // szálak befejezése
 			th->join(); 
 		}
 	}
 
-
-	
+	while (!threads.empty()) delete threads.back(), threads.pop_back(); //szálak törlése
 
 	system("PAUSE");
 	return 0;
